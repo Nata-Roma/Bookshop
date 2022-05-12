@@ -45,8 +45,8 @@ class App extends Control {
     }
     changeContainerSize(node: HTMLElement) {
         const box = node.getBoundingClientRect();
-        this.order.changeContainerSize(box.width);
-        this.checkout?.changeContainerSize(box.width);
+        this.order.changeContainerSize(box.width, window.innerHeight);
+        this.checkout?.changeContainerSize(box.width, window.innerHeight);
     }
 
     async getCatalog() {

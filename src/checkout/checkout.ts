@@ -18,6 +18,7 @@ export class Checkout extends Control {
     private width: number;
     private height: number;
     private parentNode: HTMLElement;
+    private wrapper: Control<HTMLElement>;
 
     constructor(
         parentNode: HTMLElement,
@@ -36,11 +37,16 @@ export class Checkout extends Control {
         this.node.style.left = `${-this.width}px`;
         this.node.style.top = `${window.scrollY}px`;
 
-        const wrapper = new Control(this.node, 'div', 'checkout_wrapper');
-        const title = new Control(wrapper.node, 'div', 'order_title');
+        this.wrapper = new Control(this.node, 'div', 'checkout_wrapper');
+        const wrapperBox = this.wrapper.node.getBoundingClientRect();
+        if(wrapperBox.height > this.height) {
+            this.node.style.alignItems = 'flex-start';
+        }
+
+        const title = new Control(this.wrapper.node, 'div', 'order_title');
         title.node.textContent = 'Checkout';
 
-        const formContainer = new Control(wrapper.node, 'div', 'order_contaner');
+        const formContainer = new Control(this.wrapper.node, 'div', 'order_contaner');
         this.form.formFields.forEach((field) => {
             const newField = new InputBlock(formContainer.node, field);
             newField.onChange = (value: string) => {
@@ -65,7 +71,7 @@ export class Checkout extends Control {
             this.getNewGiftOutput();
         };
 
-        const iconX = new Control(wrapper.node, 'div', 'order_x', 'X');
+        const iconX = new Control(this.wrapper.node, 'div', 'order_x', 'X');
         iconX.node.onclick = () => {
             this.destroyNode();
         };
@@ -75,7 +81,7 @@ export class Checkout extends Control {
             }
         };
 
-        const controls = new Control(wrapper.node, 'div', 'checkout_controls');
+        const controls = new Control(this.wrapper.node, 'div', 'checkout_controls');
 
         this.confirmBtn = new Control(
             controls.node,
@@ -85,7 +91,7 @@ export class Checkout extends Control {
         );
         this.confirmBtn.node.setAttribute('disabled', 'true');
         this.confirmBtn.node.onclick = () => {
-            this.finish = new CheckoutFinish(wrapper.node, form.getFinalOutput(order, data));
+            this.finish = new CheckoutFinish(this.wrapper.node, form.getFinalOutput(order, data));
             this.finish.onClose = () => {
                 this.onFinish();
             };
@@ -105,11 +111,13 @@ export class Checkout extends Control {
     show() {
         this.node.style.top = `${window.scrollY}px)`;
         this.node.style.transform = `translateX(${this.width}px)`;
-        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
+        const box = this.parentNode.getBoundingClientRect();
+        this.changeContainerSize(box.width, window.innerHeight);
     }
 
     hide() {
-        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
+        const box = this.parentNode.getBoundingClientRect();
+        this.changeContainerSize(box.width, window.innerHeight);
         this.node.style.transform = '';
     }
 
@@ -140,10 +148,19 @@ export class Checkout extends Control {
         this.checkBoxBlock.setGiftData(this.form.clearGiftOutput());
     }
 
-    changeContainerSize(width: number) {
+    changeContainerSize(width: number, height: number) {
+        
         this.width = width;
         this.node.style.width = `${this.width}px`;
         this.node.style.left = `${-width}px`;
         this.node.style.transform = `translateX(${width}px)`;
+        this.height = height;
+        this.node.style.height = `${this.height}px`;
+        const wrapperBox = this.wrapper.node.getBoundingClientRect();
+        if(wrapperBox.height > this.height) {
+            this.node.style.alignItems = 'flex-start';
+        } else {
+            this.node.style.alignItems = 'center';
+        }
     }
 }
