@@ -28,7 +28,6 @@ export class Basket extends Control {
             const id = JSON.parse(e.dataTransfer.getData('id'));
             this.node.classList.remove('backet_enter');
             this.addByDrag(id);
-            //this.increaseQuantity();
         };
         this.node.ondragleave = (e) => {
             this.node.classList.remove('backet_enter');

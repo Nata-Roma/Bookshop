@@ -39,12 +39,10 @@ export class Form {
             flat: '',
             payment: formPayment[0].name,
         };
-        //this.clearGiftOutput();
     }
 
     clearGiftOutput() {
         this.giftOutput = this.createGiftOutput(this.formGifts);
-        console.log(this.giftOutput);
         return this.giftOutput;
     }
 

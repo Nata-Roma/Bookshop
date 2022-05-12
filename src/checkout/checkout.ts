@@ -14,6 +14,10 @@ export class Checkout extends Control {
     private checkBoxBlock: CheckboxBlock;
     private finish: CheckoutFinish = null;
     public onFinish: () => void = () => {};
+    public onHide: () => void = () => {};
+    private width: number;
+    private height: number;
+    private parentNode: HTMLElement;
 
     constructor(
         parentNode: HTMLElement,
@@ -23,6 +27,14 @@ export class Checkout extends Control {
     ) {
         super(parentNode, 'div', 'checkout_layout');
         this.form = form;
+        this.parentNode = parentNode;
+        this.width = parentNode.scrollWidth;
+
+        this.height = window.innerHeight;
+        this.node.style.width = `${this.width}px`;
+        this.node.style.height = `${this.height}px`;
+        this.node.style.left = `${-this.width}px`;
+        this.node.style.top = `${window.scrollY}px`;
 
         const wrapper = new Control(this.node, 'div', 'checkout_wrapper');
         const title = new Control(wrapper.node, 'div', 'order_title');
@@ -59,7 +71,7 @@ export class Checkout extends Control {
         };
         this.node.onclick = (e) => {
             if (e.target === this.node) {
-                this.destroyNode();
+                this.finish ? this.onFinish() : this.destroyNode();
             }
         };
 
@@ -91,18 +103,23 @@ export class Checkout extends Control {
     }
 
     show() {
-        this.node.classList.add('checkout_show');
+        this.node.style.top = `${window.scrollY}px)`;
+        this.node.style.transform = `translateX(${this.width}px)`;
+        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
     }
 
     hide() {
-        this.node.classList.remove('checkout_show');
+        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
+        this.node.style.transform = '';
     }
 
     destroyNode() {
         this.hide();
+        this.onHide();
         this.node.ontransitionend = () => {
             if (this.finish) {
                 this.finish.destroy();
+                this.finish = null;
             }
             this.destroy();
         };
@@ -121,5 +138,12 @@ export class Checkout extends Control {
 
     getNewGiftOutput() {
         this.checkBoxBlock.setGiftData(this.form.clearGiftOutput());
+    }
+
+    changeContainerSize(width: number) {
+        this.width = width;
+        this.node.style.width = `${this.width}px`;
+        this.node.style.left = `${-width}px`;
+        this.node.style.transform = `translateX(${width}px)`;
     }
 }

@@ -27,4 +27,12 @@ export class Header extends Control {
     changeQuantity(num: number) {
         this.basket.changeQuantity(num);
     }
+
+    setLowZIndex() {
+        this.node.classList.add('z-1')
+    }
+
+    removeLowZIndex() {
+        this.node.classList.remove('z-1')
+    }
 }

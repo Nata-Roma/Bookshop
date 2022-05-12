@@ -10,31 +10,47 @@ export class Order extends Control {
     private empty: Control<HTMLElement>;
     public onConfirm: (order: Array<IBookOrder>) => void = () => {};
     private confirm: Control<HTMLButtonElement>;
+    public onHide: () => void = () => {};
+    private wrapper: Control<HTMLElement>;
+    private width: number;
+    private height: number;
+    private parentNode: HTMLElement;
 
     constructor(parentNode: HTMLElement) {
         super(parentNode, 'div', 'order_layout');
-        const wrapper = new Control(this.node, 'div', 'order_wrapper');
-        const title = new Control(wrapper.node, 'div', 'order_title');
+        this.parentNode = parentNode
+        this.width = parentNode.scrollWidth;
+        
+        this.height = window.innerHeight;
+        this.node.style.width = `${this.width}px`;
+        this.node.style.height = `${this.height}px`;
+        this.node.style.top = `${-this.height}px`;
+
+        this.wrapper = new Control(this.node, 'div', 'order_wrapper');
+        const title = new Control(this.wrapper.node, 'div', 'order_title');
         title.node.textContent = 'My Order';
 
-        this.orderContainer = new Control(wrapper.node, 'div', 'order_contaner');
-        
+        this.orderContainer = new Control(this.wrapper.node, 'div', 'order_contaner');
 
-        const iconX = new Control(wrapper.node, 'div', 'order_x', 'X');
+        const iconX = new Control(this.wrapper.node, 'div', 'order_x', 'X');
         iconX.node.onclick = () => {
-            this.hide();
+            this.onHide();
         };
         this.node.onclick = (e) => {
             if (e.target === this.node) {
-                this.hide();
+                this.onHide();
             }
         };
 
-        const totalContainer = new Control(wrapper.node, 'div', 'order_total_wrapper');
+        const totalContainer = new Control(this.wrapper.node, 'div', 'order_total_wrapper');
         this.total = new Control(totalContainer.node, 'div', 'order_total', 'Total: $0');
-        
 
-        this.confirm = new Control<HTMLButtonElement>(totalContainer.node, 'button', 'book_control_item', 'Confirm');
+        this.confirm = new Control<HTMLButtonElement>(
+            totalContainer.node,
+            'button',
+            'book_control_item',
+            'Confirm',
+        );
 
         this.confirm.node.onclick = () => {
             this.hide();
@@ -53,11 +69,13 @@ export class Order extends Control {
     }
 
     show() {
-        this.node.classList.add('order_show');
+        this.node.style.transform = `translateY(${window.scrollY + this.height}px)`;
+        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
     }
 
     hide() {
-        this.node.classList.remove('order_show');
+        this.node.style.transform = '';
+        this.changeContainerSize(this.parentNode.getBoundingClientRect().width);
     }
 
     setTotal() {
@@ -101,16 +119,18 @@ export class Order extends Control {
     }
 
     removeEmpty() {
-        this.empty.destroy();
+        this.empty?.destroy();
+        this.empty = null;
         this.confirm.node.classList.remove('disabled');
         this.confirm.node.disabled = false;
     }
 
     removeBook(id: number) {
-        const orderBook = this.orderBooks.find((book) => book.getId() === id);
+        let orderBook = this.orderBooks.find((book) => book.getId() === id);
 
         if (orderBook) {
             orderBook.destroy();
+            orderBook = null;
         }
 
         this.orderBooks = this.orderBooks.filter((book) => book.getId() !== id);
@@ -131,10 +151,24 @@ export class Order extends Control {
     clearData() {
         this.orderBooks.forEach((book) => {
             book.destroy();
+            book = null;
         });
 
         this.orderBooks = [];
         this.total.node.textContent = '';
         this.addEmpty('Empty Basket');
+    }
+
+    setLowZIndex() {
+        this.wrapper.node.classList.add('order_fix');
+    }
+
+    removeLowZIndex() {
+        this.wrapper.node.classList.remove('order_fix');
+    }
+
+    changeContainerSize(width: number) {
+        this.width = width;
+        this.node.style.width = `${this.width}px`;
     }
 }

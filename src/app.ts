@@ -4,7 +4,7 @@ import { Header } from './header';
 import { Order } from './basket/order';
 import { Catalog } from './catalog/catalog';
 import './styles.css';
-import bgImage from './assets/backgroundImage.jpg'
+import bgImage from './assets/backgroundImage.jpg';
 import Control from './control';
 import { errors, Form, formFields, formGifts, formPayment } from './utils/form';
 
@@ -13,13 +13,24 @@ class App extends Control {
     private order: Order;
     private entryData: Array<IBookData> = [];
     private header: Header;
+    private parentNode: HTMLElement;
+    private headerHeight: number;
+    private checkout: Checkout = null;
 
     constructor(parentNode: HTMLElement) {
         super(parentNode, 'div', 'main_page');
+        this.parentNode = parentNode;
+
         this.node.style.backgroundImage = `url(${bgImage})`;
 
         this.header = new Header(this.node);
+        this.headerHeight = this.header.node.clientHeight;
+        this.node.style.paddingTop = `${this.headerHeight}px`;
+
         this.header.showOrder = () => {
+            this.node.style.paddingTop = '0';
+            this.header.setLowZIndex();
+            this.addNoScroll();
             this.showOrder();
         };
         this.header.addToBasket = (id: number) => {
@@ -29,6 +40,13 @@ class App extends Control {
         const divider = new Control(this.node, 'hr');
 
         this.getCatalog();
+
+        window.addEventListener('resize', () => this.changeContainerSize(this.node));
+    }
+    changeContainerSize(node: HTMLElement) {
+        const box = node.getBoundingClientRect();
+        this.order.changeContainerSize(box.width);
+        this.checkout?.changeContainerSize(box.width);
     }
 
     async getCatalog() {
@@ -46,21 +64,37 @@ class App extends Control {
             this.header.changeQuantity(num);
         };
         this.order.onConfirm = (order: Array<IBookOrder>) => {
-            const checkout = new Checkout(
+            this.checkout = new Checkout(
                 this.node,
                 order,
                 data,
                 new Form(formFields, errors, formPayment, formGifts),
             );
             this.order.node.ontransitionend = () => {
-                checkout.show();
+                this.checkout?.show();
             };
-            checkout.onFinish = () => {
+            this.checkout.onHide = () => {
+                this.checkout = null;
+                this.restoreView();
+            };
+            this.checkout.onFinish = () => {
                 this.order.clearData();
                 this.header.changeQuantity(0);
-                checkout.destroyNode();
+                this.checkout.destroyNode();
+                this.restoreView();
+                this.checkout = null;
             };
         };
+        this.order.onHide = () => {
+            this.restoreView();
+            this.order.hide();
+        };
+    }
+
+    restoreView() {
+        this.header.removeLowZIndex();
+        this.node.style.paddingTop = `${this.headerHeight}px`;
+        this.removeNoScroll();
     }
 
     showOrder() {
@@ -72,6 +106,15 @@ class App extends Control {
         if (found) {
             this.order.addBook(found);
         }
+    }
+
+    addNoScroll() {
+        this.parentNode.classList.add('no_scroll');
+    }
+
+    removeNoScroll() {
+        this.parentNode.classList.remove('no_scroll');
+        this.changeContainerSize(this.parentNode);
     }
 }
 

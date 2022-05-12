@@ -13,7 +13,6 @@ export class Book extends Control {
         super(parentNode, 'div', 'book_wrapper');
         this.bookData = data;
 
-        //const image = new Control(this.node, 'div', 'book_image');
         this.bookImage = new Control(this.node, 'div', 'book_image', 'IMG');
         this.bookImage.node.draggable = true;
 
