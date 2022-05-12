@@ -1,15 +1,4 @@
-# 🚀 Welcome to your new awesome project!
+# Book Shop
 
-This project has been created using **webpack-cli**, you can now run
-
-```
-npm run build
-```
-
-or
-
-```
-yarn build
-```
-
-to bundle your application
+Small practice in vanilla TS
+- drag-and-drop a book image or click on 'Add to basket' and proceed with checkout
