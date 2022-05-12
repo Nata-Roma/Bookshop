@@ -15,12 +15,13 @@ export class Order extends Control {
     private width: number;
     private height: number;
     private parentNode: HTMLElement;
+    private open: boolean = false;
 
     constructor(parentNode: HTMLElement) {
         super(parentNode, 'div', 'order_layout');
-        this.parentNode = parentNode
+        this.parentNode = parentNode;
         this.width = parentNode.scrollWidth;
-        
+
         this.height = window.innerHeight;
         this.node.style.width = `${this.width}px`;
         this.node.style.height = `${this.height}px`;
@@ -28,10 +29,10 @@ export class Order extends Control {
 
         this.wrapper = new Control(this.node, 'div', 'order_wrapper');
         const wrapperBox = this.wrapper.node.getBoundingClientRect();
-        if(wrapperBox.height > this.height) {
+        if (wrapperBox.height > this.height) {
             this.node.style.alignItems = 'flex-start';
         }
-        
+
         const title = new Control(this.wrapper.node, 'div', 'order_title');
         title.node.textContent = 'My Order';
 
@@ -74,15 +75,13 @@ export class Order extends Control {
     }
 
     show() {
+        this.open = true;
         this.node.style.transform = `translateY(${window.scrollY + this.height}px)`;
-        const box = this.parentNode.getBoundingClientRect();
-        this.changeContainerSize(box.width, window.innerHeight);
     }
 
     hide() {
+        this.open = false;
         this.node.style.transform = '';
-        const box = this.parentNode.getBoundingClientRect();
-        this.changeContainerSize(box.width, window.innerHeight);
     }
 
     setTotal() {
@@ -177,10 +176,13 @@ export class Order extends Control {
     changeContainerSize(width: number, height: number) {
         this.width = width;
         this.node.style.width = `${this.width}px`;
+
         this.height = height;
+        this.node.style.top = `${-height}px`;
+        this.open && (this.node.style.transform = `translateY(${height}px)`);
         this.node.style.height = `${this.height}px`;
         const wrapperBox = this.wrapper.node.getBoundingClientRect();
-        if(wrapperBox.height > this.height) {
+        if (wrapperBox.height > this.height) {
             this.node.style.alignItems = 'flex-start';
         } else {
             this.node.style.alignItems = 'center';
